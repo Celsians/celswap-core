@@ -4,7 +4,6 @@
 
 Celswap is a fork of [Uniswap](https://uniswap.org/) with several modifications:
 - Base token that is part of every token pair
-- Permissioned liquidity providers
 - Lowered fees (0.3% -> 0.15%)
 
 # Local Development

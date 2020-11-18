@@ -11,11 +11,7 @@ contract UniswapV2Factory is IUniswapV2Factory {
     mapping(address => mapping(address => address)) public getPair;
     address[] public allPairs;
 
-    mapping(address => bool) public liquidityProviders;
-
     event PairCreated(address indexed token0, address indexed token1, address pair, uint);
-    event LiquidityProviderRegistered(address indexed lpAddress);
-    event LiquidityProviderRemoved(address indexed lpAddress);
 
     modifier adminOnly {
         require(msg.sender == admin, 'Celswap: FORBIDDEN');
@@ -55,17 +51,5 @@ contract UniswapV2Factory is IUniswapV2Factory {
 
     function setAdmin(address _admin) external adminOnly {
         admin = _admin;
-    }
-
-    function registerLiquidityProvider(address lpAddress) external adminOnly {
-        require(liquidityProviders[lpAddress] == false, 'Celswap: ALREADY_REGISTERED');
-        liquidityProviders[lpAddress] = true;
-        emit LiquidityProviderRegistered(lpAddress);
-    }
-
-    function removeLiquidityProvider(address lpAddress) external adminOnly {
-        require(liquidityProviders[lpAddress] == true, 'Celswap: NOT_REGISTERED');
-        liquidityProviders[lpAddress] = false;
-        emit LiquidityProviderRemoved(lpAddress);
     }
 }

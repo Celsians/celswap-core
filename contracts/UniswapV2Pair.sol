@@ -35,11 +35,6 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
         unlocked = 1;
     }
 
-    modifier liquidityProviderOnly {
-        require(IUniswapV2Factory(factory).liquidityProviders(tx.origin) == true, 'Celswap: FORBIDDEN');
-        _;
-    }
-
     function getReserves() public view returns (uint112 _reserve0, uint112 _reserve1, uint32 _blockTimestampLast) {
         _reserve0 = reserve0;
         _reserve1 = reserve1;
@@ -68,7 +63,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
     }
 
     // called once by the factory at time of deployment
-    function initialize(address _token0, address _token1) external liquidityProviderOnly {
+    function initialize(address _token0, address _token1) external {
         require(msg.sender == factory, 'Celswap: FORBIDDEN'); // sufficient check
         token0 = _token0;
         token1 = _token1;
@@ -112,7 +107,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
     }
 
     // this low-level function should be called from a contract which performs important safety checks
-    function mint(address to) external lock liquidityProviderOnly returns (uint liquidity) {
+    function mint(address to) external lock returns (uint liquidity) {
         (uint112 _reserve0, uint112 _reserve1,) = getReserves(); // gas savings
         uint balance0 = IERC20(token0).balanceOf(address(this));
         uint balance1 = IERC20(token1).balanceOf(address(this));

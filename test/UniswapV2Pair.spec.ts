@@ -62,17 +62,6 @@ describe('UniswapV2Pair', () => {
     expect(reserves[1]).to.eq(token1Amount)
   })
 
-  it('mint:nonLiquidityProvider', async () => {
-    const token0Amount = expandTo18Decimals(1)
-    const token1Amount = expandTo18Decimals(4)
-    await token0.transfer(other.address, token0Amount)
-    await token1.transfer(other.address, token1Amount)
-    await token0.connect(other).transfer(pair.address, token0Amount)
-    await token1.connect(other).transfer(pair.address, token1Amount)
-
-    await expect(pair.connect(other).mint(other.address, overrides)).to.be.revertedWith('Celswap: FORBIDDEN')
-  })
-
   it('mint:gas', async () => {
     const token0Amount = expandTo18Decimals(1)
     const token1Amount = expandTo18Decimals(4)
@@ -81,7 +70,7 @@ describe('UniswapV2Pair', () => {
 
     const tx = await pair.mint(wallet.address, overrides)
     const receipt = await tx.wait()
-    expect(receipt.gasUsed).to.eq(142246)
+    expect(receipt.gasUsed).to.eq(138599)
   })
 
   async function addLiquidity(token0Amount: BigNumber, token1Amount: BigNumber) {
@@ -240,7 +229,7 @@ describe('UniswapV2Pair', () => {
 
     const tx = await pair.burn(wallet.address, overrides)
     const receipt = await tx.wait()
-    expect(receipt.gasUsed).to.eq(85229)
+    expect(receipt.gasUsed).to.eq(85206)
   })
 
   it('price{0,1}CumulativeLast', async () => {

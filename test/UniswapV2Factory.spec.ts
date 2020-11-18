@@ -22,7 +22,7 @@ describe('UniswapV2Factory', () => {
     mnemonic: 'horn horn horn horn horn horn horn horn horn horn horn horn',
     gasLimit: 9999999
   })
-  const [wallet, other, liquidityProvider] = provider.getWallets()
+  const [wallet, other] = provider.getWallets()
   const loadFixture = createFixtureLoader(provider, [wallet, other])
 
   let factory: Contract
@@ -39,23 +39,15 @@ describe('UniswapV2Factory', () => {
     expect(await factory.allPairsLength()).to.eq(0)
   })
 
-  async function registerLiquidityProvider() {
-    await expect(factory.registerLiquidityProvider(liquidityProvider.address))
-      .to.emit(factory, 'LiquidityProviderRegistered')
-      .withArgs(liquidityProvider.address)
-  }
-
   async function createPair(tokens: [string, string]) {
     const bytecode = `0x${UniswapV2Pair.evm.bytecode.object}`
     const create2Address = getCreate2Address(factory.address, tokens, bytecode)
-    await expect(factory.connect(liquidityProvider).createPair(...tokens))
+    await expect(factory.createPair(...tokens))
       .to.emit(factory, 'PairCreated')
       .withArgs(TEST_ADDRESSES[0], baseToken.address, create2Address, bigNumberify(1))
 
-    await expect(factory.connect(liquidityProvider).createPair(...tokens)).to.be.revertedWith('Celswap: PAIR_EXISTS')
-    await expect(factory.connect(liquidityProvider).createPair(...tokens.slice().reverse())).to.be.revertedWith(
-      'Celswap: PAIR_EXISTS'
-    )
+    await expect(factory.createPair(...tokens)).to.be.revertedWith('Celswap: PAIR_EXISTS')
+    await expect(factory.createPair(...tokens.slice().reverse())).to.be.revertedWith('Celswap: PAIR_EXISTS')
     expect(await factory.getPair(...tokens)).to.eq(create2Address)
     expect(await factory.getPair(...tokens.slice().reverse())).to.eq(create2Address)
     expect(await factory.allPairs(0)).to.eq(create2Address)
@@ -67,30 +59,11 @@ describe('UniswapV2Factory', () => {
     expect(await pair.token1()).to.eq(baseToken.address)
   }
 
-  it('registerLiquidityProvider', async () => {
-    await registerLiquidityProvider()
-  })
-
-  it('registerLiquidityProvider:nonAdmin', async () => {
-    await expect(factory.connect(other).registerLiquidityProvider(liquidityProvider.address)).to.be.revertedWith(
-      'Celswap: FORBIDDEN'
-    )
-  })
-
-  it('registerLiquidityProvider:alreadyRegistered', async () => {
-    await registerLiquidityProvider()
-    await expect(factory.registerLiquidityProvider(liquidityProvider.address)).to.be.revertedWith(
-      'Celswap: ALREADY_REGISTERED'
-    )
-  })
-
   it('createPair', async () => {
-    await registerLiquidityProvider()
     await createPair([baseToken.address, TEST_ADDRESSES[0]])
   })
 
   it('createPair:reverse', async () => {
-    await registerLiquidityProvider()
     await createPair([TEST_ADDRESSES[0], baseToken.address])
   })
 
@@ -99,17 +72,9 @@ describe('UniswapV2Factory', () => {
   })
 
   it('createPair:gas', async () => {
-    await registerLiquidityProvider()
-    const tx = await factory.connect(liquidityProvider).createPair(baseToken.address, TEST_ADDRESSES[0])
+    const tx = await factory.createPair(baseToken.address, TEST_ADDRESSES[0])
     const receipt = await tx.wait()
-    expect(receipt.gasUsed).to.eq(2622840)
-  })
-
-  it('createPair:nonLiquidityProvider', async () => {
-    await registerLiquidityProvider()
-    await expect(factory.connect(other).createPair(baseToken.address, TEST_ADDRESSES[0])).to.be.revertedWith(
-      'Celswap: FORBIDDEN'
-    )
+    expect(receipt.gasUsed).to.eq(2511248)
   })
 
   it('setFeeTo', async () => {
